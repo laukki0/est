@@ -1,0 +1,16 @@
+{
+  "appId": "com.exportza.estudaplus",
+  "appName": "Estuda+",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "facebook": false,
+        "apple": false,
+        "twitter": false
+      }
+    }
+  }
+}
