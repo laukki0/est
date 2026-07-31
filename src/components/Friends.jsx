@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Check, Loader2, Search, Trash2, UserPlus, Users } from "lucide-react";
 import { useT } from "../contexts/PrefsContext.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { useFriends } from "../lib/useFriends.js";
 
 function Avatar({ photoUrl, name, size = 40 }) {
@@ -15,6 +16,7 @@ function Avatar({ photoUrl, name, size = 40 }) {
 
 export default function Friends() {
   const t = useT();
+  const { isGuest } = useAuth();
   const { friends, received, sent, loading, searchByEmail, sendRequest, acceptRequest, removeFriendship } =
     useFriends();
   const [query, setQuery] = useState("");
@@ -44,6 +46,7 @@ export default function Friends() {
         </div>
       </div>
       <div className="content">
+        {isGuest && <div className="empty">{t("guest_no_changes")}</div>}
         <div style={{ display: "flex", gap: 10 }}>
           <input
             className="input"
@@ -71,7 +74,7 @@ export default function Friends() {
                 <button
                   className="btn-ghost btn"
                   onClick={() => handleSend(r.id)}
-                  disabled={sentTo.has(r.id)}
+                  disabled={sentTo.has(r.id) || isGuest}
                   style={{ fontSize: 12, padding: "6px 12px" }}
                 >
                   <UserPlus size={14} />
@@ -96,6 +99,7 @@ export default function Friends() {
                     className="btn-ghost btn"
                     style={{ fontSize: 12, padding: "6px 12px" }}
                     onClick={() => acceptRequest(r.friendship_id, r.display_name)}
+                    disabled={isGuest}
                   >
                     <Check size={14} />
                     {t("friends_accept")}
@@ -104,6 +108,7 @@ export default function Friends() {
                     className="btn-ghost btn"
                     style={{ fontSize: 12, padding: "6px 10px" }}
                     onClick={() => removeFriendship(r.friendship_id)}
+                    disabled={isGuest}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -152,7 +157,7 @@ export default function Friends() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                     <Avatar photoUrl={f.photo_url} name={f.display_name} size={44} />
                     <div style={{ flex: 1, fontSize: 15, fontWeight: 600 }}>{f.display_name}</div>
-                    <button className="btn-ghost btn" style={{ padding: 6 }} onClick={() => removeFriendship(f.friendship_id)}>
+                    <button className="btn-ghost btn" style={{ padding: 6 }} onClick={() => removeFriendship(f.friendship_id)} disabled={isGuest}>
                       <Trash2 size={14} />
                     </button>
                   </div>

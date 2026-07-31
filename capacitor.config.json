@@ -1,6 +1,6 @@
 {
-  "appId": "com.exportza.estudaplus",
-  "appName": "Estuda+",
+  "appId": "com.exportza.cohort",
+  "appName": "Cohort",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "plugins": {

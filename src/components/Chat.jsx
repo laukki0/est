@@ -8,9 +8,10 @@ import {
   filesToAttachments,
 } from "../lib/attachments.js";
 import AttachmentChips from "./AttachmentChips.jsx";
+import QuotaBanner from "./QuotaBanner.jsx";
 
 function buildSystem(langInstruction) {
-  return `Você é o Estuda+, um tutor de estudos paciente e didático que ajuda estudantes a se prepararem para provas. Quando o aluno enviar uma imagem, PDF ou áudio, analise o conteúdo enviado e ajude a entender ou resolver o que está nele. Explique conceitos com clareza, use exemplos quando ajudar, seja direto e encorajador. ${langInstruction}`;
+  return `Você é o Cohort, um tutor de estudos paciente e didático que ajuda estudantes a se prepararem para provas. Quando o aluno enviar uma imagem, PDF ou áudio, analise o conteúdo enviado e ajude a entender ou resolver o que está nele. Explique conceitos com clareza, use exemplos quando ajudar, seja direto e encorajador. ${langInstruction}`;
 }
 
 function MessageBody({ content }) {
@@ -93,8 +94,8 @@ export default function Chat() {
     try {
       const reply = await askAI(buildSystem(langInstruction), next);
       setMessages((cur) => [...cur, { role: "assistant", content: reply.trim() }]);
-    } catch {
-      setError(t("chat_error"));
+    } catch (err) {
+      setError(err?.quotaExceeded ? "quota" : t("chat_error"));
     } finally {
       setLoading(false);
     }
@@ -119,7 +120,7 @@ export default function Chat() {
             <Loader2 size={14} className="spin" /> {t("chat_thinking")}
           </div>
         )}
-        {error && <div className="empty">{error}</div>}
+        {error === "quota" ? <QuotaBanner /> : error && <div className="empty">{error}</div>}
       </div>
       <div
         style={{

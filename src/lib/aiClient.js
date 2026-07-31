@@ -27,7 +27,9 @@ export async function askAI(system, messages) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || "Não foi possível falar com a IA agora.");
+    const e = new Error(err.message || "Não foi possível falar com a IA agora.");
+    if (err.error === "quota_exceeded") e.quotaExceeded = true;
+    throw e;
   }
 
   const data = await res.json();

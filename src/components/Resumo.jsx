@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { askAI } from "../lib/aiClient.js";
 import { useT, useAiLanguageInstruction } from "../contexts/PrefsContext.jsx";
+import QuotaBanner from "./QuotaBanner.jsx";
 
 function buildSystem(langInstruction) {
-  return `Você é o Estuda+, um tutor de estudos que ajuda estudantes a revisar conteúdo para provas. ${langInstruction}`;
+  return `Você é o Cohort, um tutor de estudos que ajuda estudantes a revisar conteúdo para provas. ${langInstruction}`;
 }
 
 export default function Resumo() {
@@ -24,8 +25,8 @@ export default function Resumo() {
       const prompt = `Resuma o conteúdo de estudo abaixo em tópicos curtos e objetivos, destacando o que é mais importante para uma prova. Uma ideia por linha, cada linha começando com "- ". Sem introdução nem conclusão, só os tópicos.\n\nConteúdo:\n${text}`;
       const result = await askAI(buildSystem(langInstruction), [{ role: "user", content: prompt }]);
       setSummary(result.trim());
-    } catch {
-      setError(t("resumo_error"));
+    } catch (err) {
+      setError(err?.quotaExceeded ? "quota" : t("resumo_error"));
     } finally {
       setLoading(false);
     }
@@ -58,7 +59,7 @@ export default function Resumo() {
             {t("resumo_button")}
           </button>
         </div>
-        {error && <div className="empty">{error}</div>}
+        {error === "quota" ? <QuotaBanner /> : error && <div className="empty">{error}</div>}
         {lines.length > 0 && (
           <div className="card">
             <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>

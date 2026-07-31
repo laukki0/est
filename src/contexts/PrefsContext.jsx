@@ -11,6 +11,9 @@ const DEFAULT_PREFS = {
   display_name: "",
   email: "",
   photo_url: "",
+  country: "",
+  state: "",
+  focus_area: "",
 };
 
 export function PrefsProvider({ children }) {

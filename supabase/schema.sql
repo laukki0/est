@@ -1,4 +1,4 @@
--- Estuda+ — schema do Supabase
+-- Cohort — schema do Supabase
 -- Rode este arquivo inteiro no SQL Editor do seu projeto Supabase
 -- (Dashboard → SQL Editor → New query → cole tudo → Run).
 
@@ -14,6 +14,9 @@ create table if not exists public.profiles (
   photo_url text default '',
   theme text not null default 'dark',
   language text not null default 'pt',
+  country text default '',
+  state text default '',
+  focus_area text default '',
   last_login timestamptz default now(),
   updated_at timestamptz default now()
 );

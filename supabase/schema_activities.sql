@@ -1,4 +1,4 @@
--- Estuda+ — feed de atividades (rode depois de schema.sql e
+-- Cohort — feed de atividades (rode depois de schema.sql e
 -- schema_friends.sql)
 -- Cole no SQL Editor do Supabase e dê Run.
 

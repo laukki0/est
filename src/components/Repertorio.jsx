@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { askAI, parseJSONBlock } from "../lib/aiClient.js";
 import { useT, useAiLanguageInstruction } from "../contexts/PrefsContext.jsx";
+import QuotaBanner from "./QuotaBanner.jsx";
 
 function buildSystem(langInstruction) {
-  return `Você é o Estuda+, especialista em ajudar estudantes a montar repertório sociocultural para redações (estilo ENEM e vestibulares). Traga sugestões reais e verificáveis (livros e filmes que de fato existem), nunca invente títulos. ${langInstruction}`;
+  return `Você é o Cohort, especialista em ajudar estudantes a montar repertório sociocultural para redações (estilo ENEM e vestibulares). Traga sugestões reais e verificáveis (livros e filmes que de fato existem), nunca invente títulos. ${langInstruction}`;
 }
 
 export default function Repertorio() {
@@ -34,8 +35,8 @@ export default function Repertorio() {
       const raw = await askAI(buildSystem(langInstruction), [{ role: "user", content: prompt }]);
       const parsed = parseJSONBlock(raw);
       setItens(parsed);
-    } catch {
-      setError(t("repertorio_error"));
+    } catch (err) {
+      setError(err?.quotaExceeded ? "quota" : t("repertorio_error"));
     } finally {
       setLoading(false);
     }
@@ -72,7 +73,7 @@ export default function Repertorio() {
           ))}
         </div>
 
-        {error && <div className="empty">{error}</div>}
+        {error === "quota" ? <QuotaBanner /> : error && <div className="empty">{error}</div>}
 
         {itens.length > 0 && (
           <div className="repertorio-grid">

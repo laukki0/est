@@ -10,9 +10,11 @@ import {
   filesToAttachments,
 } from "../lib/attachments.js";
 import AttachmentChips from "./AttachmentChips.jsx";
+import QuotaBanner from "./QuotaBanner.jsx";
+import ShareResultButton from "./ShareResultButton.jsx";
 
 function buildSystem(langInstruction) {
-  return `Você é o Estuda+, um tutor de estudos que ajuda estudantes a revisar conteúdo para provas. ${langInstruction}`;
+  return `Você é o Cohort, um tutor de estudos que ajuda estudantes a revisar conteúdo para provas. ${langInstruction}`;
 }
 
 const JSON_FORMAT_INSTRUCTION =
@@ -78,8 +80,8 @@ export default function Quiz() {
       setSelected(null);
       setScore(0);
       setFinished(false);
-    } catch {
-      setError(t("quiz_error"));
+    } catch (err) {
+      setError(err?.quotaExceeded ? "quota" : t("quiz_error"));
     } finally {
       setLoading(false);
     }
@@ -157,7 +159,7 @@ export default function Quiz() {
                 {t("quiz_button")}
               </button>
             </div>
-            {error && <div className="empty">{error}</div>}
+            {error === "quota" ? <QuotaBanner /> : error && <div className="empty">{error}</div>}
             {!loading && <div className="empty">{t("quiz_empty")}</div>}
           </>
         )}
@@ -207,11 +209,16 @@ export default function Quiz() {
             <div className="hand" style={{ fontSize: 30 }}>
               {t("quiz_score", { score, total: questions.length })}
             </div>
-            <div style={{ marginTop: 14 }}>
+            <div style={{ marginTop: 14, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
               <button className="btn" onClick={restart}>
                 <RotateCcw size={16} />
                 {t("quiz_restart")}
               </button>
+              <ShareResultButton
+                title={t("share_quiz_title", { total: questions.length })}
+                statValue={`${score}/${questions.length}`}
+                statLabel={t("share_quiz_label")}
+              />
             </div>
           </div>
         )}

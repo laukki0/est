@@ -4,13 +4,17 @@ import { supabase } from "../supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { usePrefs, useT } from "../contexts/PrefsContext.jsx";
 import { useStats } from "../lib/useStats.js";
+import { BRAZIL_STATES, COUNTRIES, FOCUS_AREAS } from "../lib/profileOptions.js";
 
 export default function Profile() {
   const t = useT();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { prefs, updatePrefs } = usePrefs();
   const { stats } = useStats();
   const [name, setName] = useState(prefs.display_name || "");
+  const [country, setCountry] = useState(prefs.country || "");
+  const [region, setRegion] = useState(prefs.state || "");
+  const [focusArea, setFocusArea] = useState(prefs.focus_area || "");
   const [preview, setPreview] = useState(prefs.photo_url || "");
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -46,7 +50,13 @@ export default function Profile() {
         // cache-bust pra foto nova aparecer na hora, já que o path é fixo
         photoUrl = `${data.publicUrl}?t=${Date.now()}`;
       }
-      await updatePrefs({ display_name: name.trim(), photo_url: photoUrl });
+      await updatePrefs({
+        display_name: name.trim(),
+        photo_url: photoUrl,
+        country,
+        state: region,
+        focus_area: focusArea,
+      });
       setMessage(t("profile_saved"));
     } catch {
       setError(t("profile_error"));
@@ -74,7 +84,7 @@ export default function Profile() {
             style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover" }}
           />
           <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickFile} style={{ display: "none" }} />
-          <button className="btn-ghost btn" onClick={() => fileInputRef.current?.click()}>
+          <button className="btn-ghost btn" onClick={() => fileInputRef.current?.click()} disabled={isGuest}>
             <Upload size={16} />
             {t("profile_change_photo")}
           </button>
@@ -83,18 +93,79 @@ export default function Profile() {
             <label style={{ fontSize: 13, color: "var(--chalk-dim)", display: "block", marginBottom: 6 }}>
               {t("profile_name_label")}
             </label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={isGuest} />
+          </div>
+
+          <div style={{ width: "100%" }}>
+            <label style={{ fontSize: 13, color: "var(--chalk-dim)", display: "block", marginBottom: 6 }}>
+              {t("profile_country_label")}
+            </label>
+            <select
+              className="input"
+              value={country}
+              onChange={(e) => {
+                setCountry(e.target.value);
+                setRegion("");
+              }}
+              disabled={isGuest}
+            >
+              <option value="">{t("profile_select_placeholder")}</option>
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ width: "100%" }}>
+            <label style={{ fontSize: 13, color: "var(--chalk-dim)", display: "block", marginBottom: 6 }}>
+              {t("profile_state_label")}
+            </label>
+            {country === "BR" ? (
+              <select className="input" value={region} onChange={(e) => setRegion(e.target.value)} disabled={isGuest}>
+                <option value="">{t("profile_select_placeholder")}</option>
+                {BRAZIL_STATES.map((uf) => (
+                  <option key={uf} value={uf}>
+                    {uf}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="input"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                placeholder={t("profile_state_placeholder")}
+                disabled={isGuest}
+              />
+            )}
+          </div>
+
+          <div style={{ width: "100%" }}>
+            <label style={{ fontSize: 13, color: "var(--chalk-dim)", display: "block", marginBottom: 6 }}>
+              {t("profile_focus_label")}
+            </label>
+            <select className="input" value={focusArea} onChange={(e) => setFocusArea(e.target.value)} disabled={isGuest}>
+              <option value="">{t("profile_select_placeholder")}</option>
+              {FOCUS_AREAS.map((f) => (
+                <option key={f} value={f}>
+                  {t(`focus_${f}`)}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button
             className="btn"
             onClick={save}
-            disabled={saving || !name.trim()}
+            disabled={saving || !name.trim() || isGuest}
             style={{ width: "100%", justifyContent: "center" }}
           >
             {saving ? <Loader2 size={16} className="spin" /> : null}
             {t("profile_save")}
           </button>
+          {isGuest && <div className="empty">{t("guest_no_changes")}</div>}
           {message && <div style={{ fontSize: 13, color: "var(--chalk-green)" }}>{message}</div>}
           {error && <div className="empty">{error}</div>}
         </div>

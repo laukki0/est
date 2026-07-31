@@ -1,4 +1,4 @@
--- Estuda+ — sistema de amigos (rode depois do schema.sql)
+-- Cohort — sistema de amigos (rode depois do schema.sql)
 -- Cole no SQL Editor do Supabase e dê Run.
 
 -- ============================================================

@@ -119,6 +119,32 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Cliente autenticado como o próprio usuário (via JWT dele), pra que
+  // auth.uid() resolva certo dentro da função consume_ai_quota() no banco.
+  const supabaseAsUser = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+
+  let quota = { allowed: true, remaining: null, is_premium: true, daily_limit: null };
+  try {
+    const { data: quotaRows, error: quotaError } = await supabaseAsUser.rpc("consume_ai_quota");
+    if (quotaError) throw quotaError;
+    quota = quotaRows?.[0] || quota;
+  } catch (err) {
+    console.error("Erro consultando cota de IA:", err.message);
+    // Se a checagem de cota falhar por algum motivo (ex.: schema_billing.sql
+    // ainda não foi rodado), deixa passar em vez de travar o app inteiro.
+  }
+
+  if (!quota.allowed) {
+    res.status(402).json({
+      error: "quota_exceeded",
+      message: "Você atingiu o limite diário gratuito de gerações de IA. Assine o Premium pra ter uso ilimitado.",
+      dailyLimit: quota.daily_limit,
+    });
+    return;
+  }
+
   const { system, messages } = req.body || {};
   if (!system || !Array.isArray(messages)) {
     res.status(400).json({ error: "invalid_argument" });
@@ -130,7 +156,7 @@ export default async function handler(req, res) {
     // Gemini, sem tentar a Groq antes.
     try {
       const text = await callGemini(process.env.GEMINI_API_KEY, system, messages);
-      res.status(200).json({ text, provider: "gemini" });
+      res.status(200).json({ text, provider: "gemini", quota });
     } catch (err) {
       console.error("Gemini (anexo) falhou:", err.message);
       res.status(500).json({ error: "internal", message: "Não foi possível analisar o arquivo agora." });
@@ -140,12 +166,12 @@ export default async function handler(req, res) {
 
   try {
     const text = await callGroq(process.env.GROQ_API_KEY, system, messages);
-    res.status(200).json({ text, provider: "groq" });
+    res.status(200).json({ text, provider: "groq", quota });
   } catch (err) {
     console.warn("Groq falhou, tentando Gemini:", err.message);
     try {
       const text = await callGemini(process.env.GEMINI_API_KEY, system, messages);
-      res.status(200).json({ text, provider: "gemini" });
+      res.status(200).json({ text, provider: "gemini", quota });
     } catch (err2) {
       console.error("Gemini também falhou:", err2.message);
       res.status(500).json({ error: "internal", message: "Não foi possível gerar resposta agora." });

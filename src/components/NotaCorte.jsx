@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AlertTriangle, Scale } from "lucide-react";
 import { useT } from "../contexts/PrefsContext.jsx";
+import ShareResultButton from "./ShareResultButton.jsx";
 
 const AREAS = ["linguagens", "humanas", "natureza", "matematica", "redacao"];
 const ESTIMATOR_AREAS = ["linguagens", "humanas", "natureza", "matematica"];
@@ -204,6 +205,15 @@ export default function NotaCorte() {
               </div>
             )}
           </div>
+          {media > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <ShareResultButton
+                title={t("share_notacorte_title")}
+                statValue={media.toFixed(1)}
+                statLabel={t("share_notacorte_label")}
+              />
+            </div>
+          )}
         </div>
 
         <div className="card">

@@ -3,9 +3,10 @@ import { ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { askAI, parseJSONBlock } from "../lib/aiClient.js";
 import { useStats } from "../lib/useStats.js";
 import { useT, useAiLanguageInstruction } from "../contexts/PrefsContext.jsx";
+import QuotaBanner from "./QuotaBanner.jsx";
 
 function buildSystem(langInstruction) {
-  return `Você é o Estuda+, um tutor de estudos que ajuda estudantes a revisar conteúdo para provas. ${langInstruction}`;
+  return `Você é o Cohort, um tutor de estudos que ajuda estudantes a revisar conteúdo para provas. ${langInstruction}`;
 }
 
 export default function Flashcards() {
@@ -32,8 +33,8 @@ export default function Flashcards() {
       setIndex(0);
       setFlipped(false);
       seenRef.current = new Set();
-    } catch {
-      setError(t("flashcards_error"));
+    } catch (err) {
+      setError(err?.quotaExceeded ? "quota" : t("flashcards_error"));
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export default function Flashcards() {
             {t("flashcards_button")}
           </button>
         </div>
-        {error && <div className="empty">{error}</div>}
+        {error === "quota" ? <QuotaBanner /> : error && <div className="empty">{error}</div>}
 
         {card && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, marginTop: 8 }}>
